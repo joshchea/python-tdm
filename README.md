@@ -33,7 +33,7 @@ should be balanced before usage, if not then A is scaled to P)</p>
 trip matrices with multiple target production vectors and one attraction vector</p>
 
 <p class=MsoNormal>e) CalcMultiDistribute : Applies gravity model to a given
-set of frication matrices with multiple production vectors and one target
+set of friction matrices with multiple production vectors and one target
 attraction vector</p>
 
 <p class=MsoNormal>Choice functions:</p>
