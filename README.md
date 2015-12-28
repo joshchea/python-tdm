@@ -48,9 +48,10 @@ probability given base utilities, current utilities and base proabilities</p>
 probabilities given dictionary with tree definition, matrix references and
 number of zones</p>
 
-<p class=MsoNormal>d) TODO: CalcNestedChoiceFlat : Calculate nested choice on
-flat array so it can be used for stuff like microsim ABM etc... c above can in
-general be easily modified for this</p>
+<p class=MsoNormal>d) CalcNestedChoiceFlat : Calculate nested choice on
+flat array so it can be used for stuff like microsim ABM etc. usage is same as c) 
+but inputs are flat arrays instead of square matrices and length of vector/s instead of 
+number of zones</p>
 
 <p class=MsoNormal>Have fun!</p>
 
