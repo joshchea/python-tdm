@@ -3,8 +3,8 @@
 # Purpose:     Utilities for various calculations of different types of choice models.
 #               a) CalcMultinomialChoice : Calculates a multinomial choice model probability given a dictionary of mode utilities 
 #               b) CalcPivotPoint : Calculates pivot point choice probability given base utilities, current utilities and base proabilities
-#               e) CalcNestedChoice : Calculates n-level nested mode choice probabilities given dictionary with tree definition, matrix references and number of zones
-#               f) TODO: CalcNestedChoiceFlat : Calculate nested choice on flat array so it can be used for stuff like microsim ABM etc... e) can in general be easily modified for this 
+#               c) CalcNestedChoice : Calculates n-level nested mode choice probabilities given dictionary with tree definition, matrix references and number of zones
+#               d) TODO: CalcNestedChoiceFlat : Calculate nested choice on flat array so it can be used for stuff like microsim ABM etc... e) can in general be easily modified for this 
 #              **All input vectors are expected to be numpy arrays  
 #               
 # Author:      Chetan Joshi, Portland OR
@@ -162,10 +162,91 @@ def CalcNestedChoice(TreeDefn, MatRefs, numZn, getLogSumAccess = 0):
         return ProbMats
     else:
         return ProbMats, MatRefs['ROOT']
+
+
+def CalcNestedChoiceFlat(TreeDefn, MatRefs, vecLen, getLogSumAccess = 0):
+    '''
+    #TreeDefn = {(0,'ROOT'):[1.0,['AU', 'TR', 'AC']],
+    #            (1,'AU'):[0.992,['CD', 'CP']],
+    #            (1,'TR'):[0.992,['TB', 'TP']],
+    #            (1,'AC'):[0.992,['BK', 'WK']]}
+    #
+    #Key-> (Level ID, Level Code): Values-> (LogSum Parameter enters as: 1/lambda, SubLevel IDs)
+    #       ROOT should always be ID = 0 and Code = 'ROOT'                            
+    #                             ROOT
+    #                            / |  \
+    #                           /  |   \
+    #	                       /   |    \
+    #	                     AU    TR    AC(logsum parameter)
+    #	                    /\     /\     /\ 
+    #	                  CD CP  TB TP  BK WK         
+    #             		              
+    #MatRefs = {'ROOT': 1.0, 'AU':0, 'TR':0, 'AC':0,
+    #           'CD':Ucd), 'CP':Ucp),
+    #           'TB':Utb), 'TP':Utp),
+    #           'BK':Ubk), 'WK':Uwk)} Stores utilities in dict of vectors, base level utilities are pre-specified!!
+    #
+    #vecLen = number of od pairs being evaluated 
+    #
+    #getLogSumAccess (optional, accessibility log sum) 0=no, <>0=yes
+    ''' 
+    #ProbMats = {'ROOT': 1.0, 'AU':0, 'TR':0, 'AC':0, 'CD':0, 'CP':0, 'TB':0, 'TP':0, 'BK':0, 'WK':0}   #Stores probabilities at each level
+    #TripMat = GetMatrixRaw(Visum, tripmatno) #--> Input trip distribution matrix
+    #numZn = Visum.Net.Zones.Count
+    ProbMats = dict(zip(MatRefs.keys(), numpy.zeros(len(MatRefs.keys()))))
+    ProbMats['ROOT'] = 1.0
+    #Utility calculator going up...
+    #print 'Getting logsums and utilities...'
+    for key in sorted(TreeDefn.keys(), reverse= True):
+        #print key, TreeDefn[key]
+        sumExp = numpy.zeros(vecLen)   
+        sublevelmat_codes = TreeDefn[key][1]  #produces --> ex. ['WB', 'WX', 'DX']
+
+        for code in sublevelmat_codes:
+            #print ([code, TreeDefn[key][0]])
+            MatRefs[code] = MatRefs[code]/TreeDefn[key][0]  #---> scale the utility
+            sumExp+=numpy.exp(MatRefs[code])
+        lnSum = sumExp.copy() #Maybe there is a better way of doing the next 4 steps in 1 shot
+        lnSum[sumExp == 0] = 0.000000001 
+        lnSum = numpy.log(lnSum)
+        lnSum[sumExp == 0] = -999
+        MatRefs[key[1]] = TreeDefn[key][0]*lnSum #---> Get ln sum of sublevel
+
+    #Probability going down...
+    #print 'Getting probabilities...'
+    for key in sorted(TreeDefn.keys()):
+        #print key, TreeDefn[key]
+        eU_total = numpy.zeros(vecLen)
+        sublevelmat_codes = TreeDefn[key][1] #1st set--> ROOT : AU, TR
+        for code in sublevelmat_codes:
+            #print ([code, TreeDefn[key][0]])
+            eU_total+=numpy.exp(MatRefs[code])
+            
+        eU_total[eU_total == 0] = 0.0001  #Avoid divide by 0 error
+##        for code in sublevelmat_codes:
+##            ProbMats[code] = ProbMats[key[1]]*numpy.exp(MatRefs[code])/eU_total
+        nSublevels = len(sublevelmat_codes)
+        cumProb = 0 
+        for i in xrange(nSublevels - 1):
+            code = sublevelmat_codes[i]
+            temp = numpy.exp(MatRefs[code])/eU_total
+            ProbMats[code] = ProbMats[key[1]]*temp
+            cumProb+=temp
+        code = sublevelmat_codes[i+1]
+        ProbMats[code] = ProbMats[key[1]]*(1.0-cumProb) 
+        
+    if getLogSumAccess == 0:
+        return ProbMats
+    else:
+        return ProbMats, MatRefs['ROOT']
+
 #some generic utilities for reading and writing numpy arrays to disk..
 
 def GetMatrix(fn, numZn):
     return numpy.fromfile(fn).reshape((numZn, numZn))
+
+def GetMatrixFlat(fn):
+    return numpy.fromfile(fn)
 
 def PushMatrix(fn, mat):
     mat.tofile(fn)
