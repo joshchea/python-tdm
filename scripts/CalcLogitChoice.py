@@ -61,12 +61,9 @@ def CalcMultinomialChoice(Utils, getLogSumAccess = 0):
     else:
         return Probs, lnSumAccess
 
-def CalcPivotPoint(BaseUtils, Utils, Po):
+def CalcPivotPoint(Utils, Po):
     '''
-       BaseUtils = Base utility matrices in a dictionary
-       ex. BaseUtils = {'auto':mat1, 'transit':mat2, 'bike':mat3, 'walk':mat4}
-       
-       Utils = Updated utility matrices in a dictionary
+       Utils = Updated delta utility matrices in a dictionary i.e delta of Uk (k = mode)
        ex. Utils = {'auto':mat1, 'transit':mat2, 'bike':mat3, 'walk':mat4}
        
        Po = Base probabilities in a dictionary
