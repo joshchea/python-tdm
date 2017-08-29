@@ -4,7 +4,7 @@
 #               a) CalcMultinomialChoice : Calculates a multinomial choice model probability given a dictionary of mode utilities 
 #               b) CalcPivotPoint : Calculates pivot point choice probability given base utilities, current utilities and base proabilities
 #               c) CalcNestedChoice : Calculates n-level nested mode choice probabilities given dictionary with tree definition, matrix references and number of zones
-#               d) TODO: CalcNestedChoiceFlat : Calculate nested choice on flat array so it can be used for stuff like microsim ABM etc... e) can in general be easily modified for this 
+#               d) CalcNestedChoiceFlat : Calculate nested choice on flat array so it can be used for stuff like microsim ABM etc... e) can in general be easily modified for this 
 #              **All input vectors are expected to be numpy arrays  
 #               
 # Author:      Chetan Joshi, Portland OR
