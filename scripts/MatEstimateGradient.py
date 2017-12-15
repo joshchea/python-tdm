@@ -44,8 +44,6 @@ flowmatfile = r"C:\Projects\KA_Work\LSODME\FlowMatrix.mtx"
 
 #Matrix estimation function: takes flow prportion matrix, OD seed, Count and returns adjusted matrix: Chetan Joshi, updated by Klaus Noekel
 def EstimateMatrix(FlowProp, FlowPropT, OD_Flows, Ca, Wt, iter=25):
-    #Va = numpy.sum(OD_Flows[:,numpy.newaxis] * FlowProp, axis=0)
-    #Wt[Wt < 1] = 1
     Va = FlowPropT.dot(OD_Flows)
     Visum.WriteToTrace('Length of Va' + str(len(Va)))
     Visum.WriteToTrace('Length of Ca' + str(len(Ca)))
@@ -55,9 +53,7 @@ def EstimateMatrix(FlowProp, FlowPropT, OD_Flows, Ca, Wt, iter=25):
 
     for i in range(1, iter):
         t1 = time.time()
-#        Grad = numpy.sum(FlowProp*(Va - Ca), axis=1) # sum over a in A
         Grad = FlowProp.dot((Va - Ca)*Wt) 
-#        Va_prime = numpy.sum( -OD_Flows[:,numpy.newaxis] * Grad[:,numpy.newaxis] * FlowProp, axis=0)
         Va_prime = FlowPropT.dot(-OD_Flows * Grad)
         lambda_opt = sum((Ca - Va)*Va_prime)/sum(Va_prime*Va_prime) 
         if Grad.max()> 0:
@@ -71,10 +67,8 @@ def EstimateMatrix(FlowProp, FlowPropT, OD_Flows, Ca, Wt, iter=25):
             break;
         else:
             Visum.WriteToTrace(str(i) + ': Z =' + str(Z), True)
-            #Visum.WriteToTrace( 'Z =', Z, ' time = ', t2-t1
 
     Visum.WriteToTrace('Final Z =' + str(Z), True)
-    #print 'Final Z =', Z
     return OD_Flows
 
 def readFlowMat(nODs, nLinks, filename):
