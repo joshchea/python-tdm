@@ -55,7 +55,7 @@ def GetDaySimTripsDB(daysimtripfilepath):
     trip_data.execute("CREATE TABLE trips(otaz INT, dtaz INT, deptm INT, arrtm INT, mode INT, half INT, etrps DOUBLE)")
     conn.commit()
 
-    for row in reader:
+    for row in reader:   #TO DO: Load data into temp array and push all of it together using -> executemany(...) 
         otaz = int(row[ix['otaz']])
         dtaz = int(row[ix['dtaz']])
         deptm = int(row[ix['deptm']])
