@@ -53,5 +53,9 @@ flat array so it can be used for stuff like microsim ABM etc. usage is same as c
 but inputs are flat arrays instead of square matrices and length of vector/s instead of 
 number of zones</p>
 
+<p class=MsoNormal>Matrix estimation (ODME):</p>
+
+<p class=MsoNormal>a) MatEstimateGradient : Performs synthetic matrix estimation using a least squares formulation. The solution algorithm is gradient descent (see Spiess, H., "A GRADIENT APPROACH FOR THE O-D MATRIX ADJUSTMENT PROBLEM", Publication 693, CRT, University of Montreal, 1990.) </p>
+
 <p class=MsoNormal>Have fun!</p>
 
