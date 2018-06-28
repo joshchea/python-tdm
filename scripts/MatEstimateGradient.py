@@ -2,8 +2,9 @@
 # Name:        MatEstimateGradient
 # Purpose:     OD-matrix estimation with least squares formulation, solution method is with gradient method. See Spiess 1990
 #              **All input vectors are expected to be numpy arrays, some data exchange steps use methods from Visum for which this 
-#              script was prototyped. User should replace that with appropriately.  
-#               
+#              script was prototyped. User should replace that with appropriate functions to parse their own data - see sample data  
+#              for some hints on formatting, esp the flow matrix 
+#
 # Author:      Chetan Joshi, Portland OR
 # Dependencies:numpy [http://www.numpy.org], scipy [https://www.scipy.org/], time 
 # Created:     12/14/2017
