@@ -57,5 +57,6 @@ number of zones</p>
 
 <p class=MsoNormal>a) MatEstimateGradient : Performs synthetic matrix estimation using a least squares formulation. The solution algorithm is gradient descent (see Spiess, H., "A GRADIENT APPROACH FOR THE O-D MATRIX ADJUSTMENT PROBLEM", Publication 693, CRT, University of Montreal, 1990.) </p>
 
-<p class=MsoNormal>If you use some of the components or code in this repo, please consider citing...Have fun!</p>
+<p class=MsoNormal>If you use some of the components or code in this repo, please consider citing as shown below. Have fun!</p>
 
+<p class=MsoNormal>Joshi. C, python-tdm, (2015), GitHub repository, https://github.com/joshchea/python-tdm#python-tdm</p>
