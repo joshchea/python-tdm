@@ -129,8 +129,8 @@ def CalcGravityShadow(ProdA, AttrA, F, maxIter = 10):
     maxIter (optional) = maximum iterations, default is 10
     Returns trip table
     '''
-    S = np.ones(ProdA.shape[0])
-    T = np.zeros(F.shape)
+    S = numpy.ones(ProdA.shape[0])
+    T = numpy.zeros(F.shape)
 
     AttrA[AttrA<0.000001] = 0.0001 #avoid divide by zero
     F[F<0.000001] = 0.0001
