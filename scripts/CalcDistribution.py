@@ -9,12 +9,12 @@
 #               d) CalcMultiFratar : Applies fratar model to given set of trip matrices with multiple target production vectors and one attraction vector
 #               e) CalcMultiDistribute : Applies gravity model to a given set of frication matrices with multiple production vectors and one target attraction vector
 #
-#              **All input vectors are expected to be numpy arrays  
-#               
+#              **All input vectors are expected to be numpy arrays
+#
 # Author:      Chetan Joshi, Portland OR
 # Dependencies:numpy [www.numpy.org]
 # Created:     5/14/2015
-#              
+#
 # Copyright:   (c) Chetan Joshi 2015
 # Licence:     Permission is hereby granted, free of charge, to any person obtaining a copy
 #              of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +61,7 @@ def CalcFratar(ProdA, AttrA, Trips1, maxIter = 10):
         OrigFac = (ProdA/ComputedProductions)
         Trips1 = Trips1*OrigFac[:, numpy.newaxis]
 
-        ComputedAttractions = Trips1.sum(0) 
+        ComputedAttractions = Trips1.sum(0)
         ComputedAttractions[ComputedAttractions==0]=1
         DestFac = (AttrA/ComputedAttractions)
         Trips1 = Trips1*DestFac
@@ -105,9 +105,9 @@ def CalcDoublyConstrained(ProdA, AttrA, F, maxIter = 10):
     for balIter in xrange(0, maxIter):
         for i in range(0,len(ProdA)):
             Trips1[i,:] = ProdA[i]*AttrA*F[i,:]/max(0.000001, sum(AttrA * F[i,:]))
-        
+
         #Run 2D balancing --->
-        ComputedAttractions = Trips1.sum(0) 
+        ComputedAttractions = Trips1.sum(0)
         ComputedAttractions[ComputedAttractions==0]=1
         AttrA = AttrA*(AttrT/ComputedAttractions)
 
@@ -117,8 +117,35 @@ def CalcDoublyConstrained(ProdA, AttrA, F, maxIter = 10):
 
     for i in range(0,len(ProdA)):
             Trips1[i,:] = ProdA[i]*AttrA*F[i,:]/max(0.000001, sum(AttrA * F[i,:]))
-            
+
     return Trips1
+
+def CalcGravityShadow(ProdA, AttrA, F, maxIter = 10):
+    '''Calculates doubly constrained trip distribution for a given friction factor matrix,
+    uses shadow pricing at attraction end
+    ProdA = Production array
+    AttrA = Attraction array (Target attractions)
+    F = Friction factor matrix
+    maxIter (optional) = maximum iterations, default is 10
+    Returns trip table
+    '''
+    S = np.ones(ProdA.shape[0])
+    T = np.zeros(F.shape)
+
+    AttrA[AttrA<0.000001] = 0.0001 #avoid divide by zero
+    F[F<0.000001] = 0.0001
+    Attr = AttrA * S
+
+    for k in range(maxIter):
+        if k > 0:
+            A_calc = T.sum(0)
+            print('A_calc:' + str(A_calc)))
+            Attr = Attr * AttrA / A_calc
+
+        for i in range(ProdA.shape[0]):
+            T[i,:] = ProdA[i] * Attr * F[i, :] / (Attr * F[i, :]).sum()
+
+    return T
 
 def CalcMultiFratar(Prods, Attr, TripMatrices, maxIter =10):
     '''Applies fratar model to given set of trip matrices with target productions and one attraction vector
@@ -131,24 +158,24 @@ def CalcMultiFratar(Prods, Attr, TripMatrices, maxIter =10):
     numZones = len(Attr)
     numTripMats = len(TripMatrices)
     TripMatrices = numpy.zeros((numTripMats,numZones,numZones))
-   
+
     ProdOp = Prods.copy()
     AttrOp = Attr.copy()
 
     #Run 2D balancing --->
-    for Iter in xrange(0, maxIter):        
+    for Iter in xrange(0, maxIter):
         #ComputedAttractions = numpy.ones(numZones)
         ComputedAttractions = TripMatrices.sum(1).sum(0)
         ComputedAttractions[ComputedAttractions==0]=1
         DestFac = Attr/ComputedAttractions
-        
+
         for k in xrange(0, len(numTripMats)):
             TripMatrices[k]=TripMatrices[k]*DestFac
             ComputedProductions = TripMatrices[k].sum(1)
             ComputedProductions[ComputedProductions==0]=1
             OrigFac = Prods[:,k]/ComputedProductions #P[i, k1, k2, k3]...
             TripMatrices[k]=TripMatrices[k]*OrigFac[:, numpy.newaxis]
-            
+
     return TripMatrices
 
 def CalcMultiDistribute(Prods, Attr, FricMatrices, maxIter = 10):
@@ -171,7 +198,7 @@ def CalcMultiDistribute(Prods, Attr, FricMatrices, maxIter = 10):
             for i in xrange(0, numZones):
                 if ProdOp[i, k] > 0:
                     TripMatrices[k, i, :] = ProdOp[i, k] * AttrOp * FricMatrices[k, i, :] / max(0.000001, sum(AttrOp * FricMatrices[k, i, :]))
-        #Balancing --->        
+        #Balancing --->
         ComputedAttractions = TripMatrices.sum(1).sum(0)
         ComputedAttractions[ComputedAttractions==0]=1
         AttrOp = AttrOp*(Attr/ComputedAttractions)
@@ -185,6 +212,5 @@ def CalcMultiDistribute(Prods, Attr, FricMatrices, maxIter = 10):
         for i in xrange(0, numZones):
             if ProdOp[i, k] > 0:
                 TripMatrices[k, i, :] = ProdOp[i, k] * AttrOp * FricMatrices[k, i, :] / max(0.000001, sum(AttrOp * FricMatrices[k, i, :]))
-                
-    return TripMatrices
 
+    return TripMatrices
