@@ -200,15 +200,15 @@ def CalcMultiDistribute(Prods, Attr, FricMatrices, maxIter = 10):
         ComputedAttractions = TripMatrices.sum(1).sum(0)
         ComputedAttractions[ComputedAttractions==0]=1
         AttrOp = AttrOp*(Attr/ComputedAttractions)
-        for k in xrange(0, len(fricmatnos)):
-            ComputedProductions = TripMatrices[k].sum(1)
-            ComputedProductions[ComputedProductions==0]=1
-            OrigFac = Prods[:,k]/ComputedProductions
-            ProdOp[:,k] = OrigFac*ProdOp[:,k]
+        # for k in xrange(0, len(fricmatnos)):
+        #     ComputedProductions = TripMatrices[k].sum(1)
+        #     ComputedProductions[ComputedProductions==0]=1
+        #     OrigFac = Prods[:,k]/ComputedProductions
+        #     ProdOp[:,k] = OrigFac*ProdOp[:,k]
     #Final Distribution --->
-    for k in xrange(0, numFricMats):
-        for i in xrange(0, numZones):
-            if ProdOp[i, k] > 0:
-                TripMatrices[k, i, :] = ProdOp[i, k] * AttrOp * FricMatrices[k, i, :] / max(0.000001, sum(AttrOp * FricMatrices[k, i, :]))
+    # for k in xrange(0, numFricMats):
+    #     for i in xrange(0, numZones):
+    #         if ProdOp[i, k] > 0:
+    #             TripMatrices[k, i, :] = ProdOp[i, k] * AttrOp * FricMatrices[k, i, :] / max(0.000001, sum(AttrOp * FricMatrices[k, i, :]))
 
     return TripMatrices
