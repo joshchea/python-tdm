@@ -145,7 +145,24 @@ def CalcGravityShadow(ProdA, AttrA, F, maxIter = 10):
 
     return T
 
-def CalcMultiFratar(Prods, Attr, TripMatrices, maxIter =10):
+def CalcGravity(P, A, F, maxIter=10):
+    '''A more vectorized verion of doubly constrinaed gravity model
+    P = Array of zone Productions
+    A = Array of zone Attractions | also Target attractions
+    F = Friction factor or transformed utility matrix
+    '''
+    T = A*F*P[:, numpy.newaxis]/numpy.maximum(numpy.sum(A*F, axis=1), 0.00001)[:, numpy.newaxis]
+    for i in range(maxIter):
+        cA = T.sum(0) #sum of calculated attractions
+        factor = numpy.where(A > 0, A/cA, 0)
+        F = factor*F
+        T = A*F*P[:, numpy.newaxis]/numpy.maximum(numpy.sum(A*F, axis=1), 0.00001)[:, numpy.newaxis]
+    cA = T.sum(0)
+    diff = numpy.absolute(A - cA).max()  #maximum absolute difference between target and calculated
+    print ('final max abs diff: {}'.format(diff))
+    return T
+
+def CalcMultiFratar(Prods, Attr, TripMatrices, maxIter=10):
     '''Applies fratar model to given set of trip matrices with target productions and one attraction vector
     Prods = Array of Productions (n production segments)
     AttrAtt = Array of Attraction ( 1 attraction segment)
