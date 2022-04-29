@@ -36,7 +36,7 @@ trip matrices with multiple target production vectors and one attraction vector<
 set of friction matrices with multiple production vectors and one target
 attraction vector</p>
 
-<p class=MsoNormal>e) CalcGravityShadow : Implements attraction balancing by scaling attractions instead of furnessing flows, this method is more 'correct'</p>
+<p class=MsoNormal>f) CalcGravityShadow : Implements attraction balancing by scaling attractions instead of furnessing flows, this method is more 'correct'</p>
 
 <p class=MsoNormal>Choice functions:</p>
 
