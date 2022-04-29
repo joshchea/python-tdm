@@ -8,6 +8,7 @@
 #                  friction factor matrix (P and A should be balanced before usage, if not then A is scaled to P)
 #               d) CalcMultiFratar : Applies fratar model to given set of trip matrices with multiple target production vectors and one attraction vector
 #               e) CalcMultiDistribute : Applies gravity model to a given set of frication matrices with multiple production vectors and one target attraction vector
+#               f) CalcGravityShadow : Implements attraction balancing by scaling attractions instead of furnessing flows, this method is more 'correct'
 #
 #              **All input vectors are expected to be numpy arrays
 #
@@ -34,7 +35,7 @@
 #              OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #              SOFTWARE.
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------#
-import numpy
+import numpy as np
 
 def CalcFratar(ProdA, AttrA, Trips1, maxIter = 10):
     '''Calculates fratar trip distribution
@@ -55,11 +56,11 @@ def CalcFratar(ProdA, AttrA, Trips1, maxIter = 10):
     else:
         print 'Production, attraction balancing OK.'
     #Run 2D balancing --->
-    for balIter in xrange(0, maxIter):
+    for balIter in range(0, maxIter):
         ComputedProductions = Trips1.sum(1)
         ComputedProductions[ComputedProductions==0]=1
         OrigFac = (ProdA/ComputedProductions)
-        Trips1 = Trips1*OrigFac[:, numpy.newaxis]
+        Trips1 = Trips1*OrigFac[:, np.newaxis]
 
         ComputedAttractions = Trips1.sum(0)
         ComputedAttractions[ComputedAttractions==0]=1
@@ -86,7 +87,7 @@ def CalcDoublyConstrained(ProdA, AttrA, F, maxIter = 10):
     maxIter (optional) = maximum iterations, default is 10
     Returns trip table
     '''
-    Trips1 = numpy.zeros((len(ProdA),len(ProdA)))
+    Trips1 = np.zeros((len(ProdA),len(ProdA)))
     print 'Checking production, attraction balancing:'
     sumP = sum(ProdA)
     sumA = sum(AttrA)
@@ -102,8 +103,8 @@ def CalcDoublyConstrained(ProdA, AttrA, F, maxIter = 10):
         AttrT = AttrA.copy()
         ProdT = ProdA.copy()
 
-    for balIter in xrange(0, maxIter):
-        for i in range(0,len(ProdA)):
+    for balIter in range(0, maxIter):
+        for i in range(0, len(ProdA)):
             Trips1[i,:] = ProdA[i]*AttrA*F[i,:]/max(0.000001, sum(AttrA * F[i,:]))
 
         #Run 2D balancing --->
@@ -129,7 +130,8 @@ def CalcGravityShadow(ProdA, AttrA, F, maxIter = 10):
     maxIter (optional) = maximum iterations, default is 10
     Returns trip table
     '''
-    T = numpy.zeros(F.shape)
+    T = np.zeros(F.shape)
+    AttrA = AttrA*ProdA.sum() / AttrA.sum()  #in case P and A totals don't match - balance A to P
     AttrA[AttrA<0.000001] = 0.0001 #avoid divide by zero
     Attr = AttrA.copy()
     F[F<0.000001] = 0.0001
@@ -137,7 +139,7 @@ def CalcGravityShadow(ProdA, AttrA, F, maxIter = 10):
     for k in range(maxIter):
         if k > 0:
             A_calc = T.sum(0)
-            print('A_calc:' + str(A_calc)))
+            print('A_calc:' + str(A_calc))
             Attr = Attr * AttrA / A_calc
 
         for i in range(ProdA.shape[0]):
@@ -151,14 +153,14 @@ def CalcGravity(P, A, F, maxIter=10):
     A = Array of zone Attractions | also Target attractions
     F = Friction factor or transformed utility matrix
     '''
-    T = A*F*P[:, numpy.newaxis]/numpy.maximum(numpy.sum(A*F, axis=1), 0.00001)[:, numpy.newaxis]
+    T = A*F*P[:, np.newaxis]/np.maximum(np.sum(A*F, axis=1), 0.00001)[:, np.newaxis]
     for i in range(maxIter):
         cA = T.sum(0) #sum of calculated attractions
-        factor = numpy.where(A > 0, A/cA, 0)
+        factor = np.where(A > 0, A/cA, 0)
         F = factor*F
-        T = A*F*P[:, numpy.newaxis]/numpy.maximum(numpy.sum(A*F, axis=1), 0.00001)[:, numpy.newaxis]
+        T = A*F*P[:, np.newaxis]/np.maximum(np.sum(A*F, axis=1), 0.00001)[:, np.newaxis]
     cA = T.sum(0)
-    diff = numpy.absolute(A - cA).max()  #maximum absolute difference between target and calculated
+    diff = np.absolute(A - cA).max()  #maximum absolute difference between target and calculated
     print ('final max abs diff: {}'.format(diff))
     return T
 
@@ -172,24 +174,24 @@ def CalcMultiFratar(Prods, Attr, TripMatrices, maxIter=10):
     '''
     numZones = len(Attr)
     numTripMats = len(TripMatrices)
-    TripMatrices = numpy.zeros((numTripMats,numZones,numZones))
+    TripMatrices = np.zeros((numTripMats,numZones,numZones))
 
     ProdOp = Prods.copy()
     AttrOp = Attr.copy()
 
     #Run 2D balancing --->
-    for Iter in xrange(0, maxIter):
+    for Iter in range(0, maxIter):
         #ComputedAttractions = numpy.ones(numZones)
         ComputedAttractions = TripMatrices.sum(1).sum(0)
         ComputedAttractions[ComputedAttractions==0]=1
         DestFac = Attr/ComputedAttractions
 
-        for k in xrange(0, len(numTripMats)):
+        for k in range(0, len(numTripMats)):
             TripMatrices[k]=TripMatrices[k]*DestFac
             ComputedProductions = TripMatrices[k].sum(1)
             ComputedProductions[ComputedProductions==0]=1
             OrigFac = Prods[:,k]/ComputedProductions #P[i, k1, k2, k3]...
-            TripMatrices[k]=TripMatrices[k]*OrigFac[:, numpy.newaxis]
+            TripMatrices[k]=TripMatrices[k]*OrigFac[:, np.newaxis]
 
     return TripMatrices
 
@@ -201,26 +203,26 @@ def CalcMultiDistribute(Prods, Attr, FricMatrices, maxIter = 10):
        Returns N-Dim array of trip matrices corresponding to each production segment
     '''
     numZones = len(Attr)
-    TripMatrices = numpy.zeros(FricMatrices.shape)
+    TripMatrices = np.zeros(FricMatrices.shape)
     numFricMats = len(FricMatrices)
 
     ProdOp = Prods.copy()
     AttrOp = Attr.copy()
     #Initial trip distribution --->
-    for k in xrange(0, numFricMats):
-        for i in xrange(0, numZones):
+    for k in range(0, numFricMats):
+        for i in range(0, numZones):
             if ProdOp[i, k] > 0:
-                TripMatrices[k, i, :] = ProdOp[i, k] * AttrOp * FricMatrices[k, i, :] / max(0.000001, numpy.sum(AttrOp * FricMatrices[k, i, :]))
+                TripMatrices[k, i, :] = ProdOp[i, k] * AttrOp * FricMatrices[k, i, :] / max(0.000001, np.sum(AttrOp * FricMatrices[k, i, :]))
 
-    for Iter in xrange(0, maxIter):
+    for Iter in range(0, maxIter):
         #Balancing --->
         ComputedAttractions = TripMatrices.sum(1).sum(0)
         ComputedAttractions[ComputedAttractions==0]=1
         AttrOp = AttrOp*(Attr/ComputedAttractions)
         #Distribution --->
-        for k in xrange(0, numFricMats):
-            for i in xrange(0, numZones):
+        for k in range(0, numFricMats):
+            for i in range(0, numZones):
                 if ProdOp[i, k] > 0:
-                    TripMatrices[k, i, :] = ProdOp[i, k] * AttrOp * FricMatrices[k, i, :] / max(0.000001, numpy.sum(AttrOp * FricMatrices[k, i, :]))
+                    TripMatrices[k, i, :] = ProdOp[i, k] * AttrOp * FricMatrices[k, i, :] / max(0.000001, np.sum(AttrOp * FricMatrices[k, i, :]))
 
     return TripMatrices
