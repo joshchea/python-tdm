@@ -46,11 +46,11 @@ def CalcFratar(ProdA, AttrA, Trips1, maxIter = 10):
        Returns fratared trip table
     '''
     print 'Checking production, attraction balancing:'
-    sumP = sum(ProdA)
-    sumA = sum(AttrA)
+    sumP = ProdA.sum()
+    sumA = AttrA.sum()
     print 'Production: ', sumP
     print 'Attraction: ', sumA
-    if sumP <> sumA:
+    if sumP != sumA:
         print 'Productions and attractions do not balance, attractions will be scaled to productions!'
         AttrA = AttrA*(sumP/sumA)
     else:
@@ -89,8 +89,8 @@ def CalcDoublyConstrained(ProdA, AttrA, F, maxIter = 10):
     '''
     Trips1 = np.zeros((len(ProdA),len(ProdA)))
     print 'Checking production, attraction balancing:'
-    sumP = sum(ProdA)
-    sumA = sum(AttrA)
+    sumP = ProdA.sum()
+    sumA = AttrA.sum()
     print 'Production: ', sumP
     print 'Attraction: ', sumA
     if sumP <> sumA:
@@ -105,7 +105,7 @@ def CalcDoublyConstrained(ProdA, AttrA, F, maxIter = 10):
 
     for balIter in range(0, maxIter):
         for i in range(0, len(ProdA)):
-            Trips1[i,:] = ProdA[i]*AttrA*F[i,:]/max(0.000001, sum(AttrA * F[i,:]))
+            Trips1[i,:] = ProdA[i]*AttrA*F[i,:]/max(0.000001, np.sum(AttrA * F[i,:]))
 
         #Run 2D balancing --->
         ComputedAttractions = Trips1.sum(0)
